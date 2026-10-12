@@ -1,0 +1,1319 @@
+<!DOCTYPE html>
+<html lang="ro" data-theme="dark">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Git & GitHub – Studiu de caz: lucrul în echipă</title>
+    <meta name="description"
+        content="Studiu de caz despre importanța utilizării Git și GitHub în lucrul la un proiect comun.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0b0f17;
+            --bg2: #111826;
+            --card: #151d2e;
+            --border: #26314a;
+            --text: #e6ebf5;
+            --muted: #93a0bb;
+            --accent: #4f8cff;
+            --accent2: #a46bff;
+            --green: #2fd27a;
+            --red: #ff6b6b;
+            --code: #0a0e16;
+            --shadow: 0 10px 40px rgba(0, 0, 0, .35);
+        }
+
+        [data-theme="light"] {
+            --bg: #f5f7fb;
+            --bg2: #ffffff;
+            --card: #ffffff;
+            --border: #dde3ef;
+            --text: #1a2233;
+            --muted: #5b6882;
+            --accent: #2563eb;
+            --accent2: #7c3aed;
+            --green: #16a34a;
+            --red: #dc2626;
+            --code: #0f172a;
+            --shadow: 0 10px 30px rgba(30, 50, 90, .12);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0
+        }
+
+        html {
+            scroll-behavior: smooth;
+            scroll-padding-top: 70px
+        }
+
+        body {
+            font-family: Inter, system-ui, Segoe UI, Arial, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.7;
+            transition: background .3s, color .3s
+        }
+
+        a {
+            color: var(--accent);
+            text-decoration: none
+        }
+
+        code,
+        pre,
+        .mono {
+            font-family: "JetBrains Mono", Consolas, monospace
+        }
+
+        .wrap {
+            max-width: 1050px;
+            margin: 0 auto;
+            padding: 0 20px
+        }
+
+        /* progress + nav */
+        #progress {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 3px;
+            width: 0;
+            background: linear-gradient(90deg, var(--accent), var(--accent2));
+            z-index: 100
+        }
+
+        nav {
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            background: color-mix(in srgb, var(--bg) 85%, transparent);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border)
+        }
+
+        nav .wrap {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 58px
+        }
+
+        .logo {
+            font-weight: 800;
+            letter-spacing: -.5px
+        }
+
+        .logo span {
+            background: linear-gradient(90deg, var(--accent), var(--accent2));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent
+        }
+
+        .links {
+            display: flex;
+            gap: 4px;
+            align-items: center;
+            overflow-x: auto
+        }
+
+        .links a {
+            color: var(--muted);
+            font-size: .88rem;
+            font-weight: 500;
+            padding: 6px 11px;
+            border-radius: 8px;
+            white-space: nowrap;
+            transition: .2s
+        }
+
+        .links a:hover,
+        .links a.active {
+            color: var(--text);
+            background: var(--card)
+        }
+
+        #theme {
+            background: var(--card);
+            border: 1px solid var(--border);
+            color: var(--text);
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1rem;
+            margin-left: 8px;
+            flex-shrink: 0
+        }
+
+        /* hero */
+        .hero {
+            position: relative;
+            overflow: hidden;
+            padding: 84px 0 70px
+        }
+
+        .hero::before,
+        .hero::after {
+            content: "";
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(90px);
+            opacity: .35;
+            z-index: 0
+        }
+
+        .hero::before {
+            width: 420px;
+            height: 420px;
+            background: var(--accent);
+            top: -120px;
+            left: -100px
+        }
+
+        .hero::after {
+            width: 380px;
+            height: 380px;
+            background: var(--accent2);
+            bottom: -140px;
+            right: -80px
+        }
+
+        .hero .wrap {
+            position: relative;
+            z-index: 1;
+            display: grid;
+            grid-template-columns: 1.05fr 1fr;
+            gap: 40px;
+            align-items: center
+        }
+
+        .badge {
+            display: inline-block;
+            font-size: .78rem;
+            font-weight: 600;
+            padding: 5px 12px;
+            border: 1px solid var(--border);
+            border-radius: 99px;
+            background: var(--card);
+            color: var(--muted);
+            margin-bottom: 18px
+        }
+
+        .hero h1 {
+            font-size: clamp(2rem, 4.6vw, 3.3rem);
+            line-height: 1.1;
+            font-weight: 800;
+            letter-spacing: -1.5px;
+            margin-bottom: 18px
+        }
+
+        .grad {
+            background: linear-gradient(90deg, var(--accent), var(--accent2));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent
+        }
+
+        .hero p {
+            color: var(--muted);
+            font-size: 1.08rem;
+            max-width: 520px;
+            margin-bottom: 26px
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 11px 22px;
+            border-radius: 11px;
+            font-weight: 600;
+            font-size: .95rem;
+            border: 1px solid var(--border);
+            cursor: pointer;
+            transition: .2s;
+            background: var(--card);
+            color: var(--text)
+        }
+
+        .btn.primary {
+            background: linear-gradient(90deg, var(--accent), var(--accent2));
+            border: none;
+            color: #fff
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow)
+        }
+
+        .term {
+            background: var(--code);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            box-shadow: var(--shadow);
+            overflow: hidden
+        }
+
+        .term-bar {
+            display: flex;
+            gap: 7px;
+            padding: 11px 14px;
+            background: #161d2c
+        }
+
+        .term-bar i {
+            width: 11px;
+            height: 11px;
+            border-radius: 50%;
+            display: block
+        }
+
+        .term-bar i:nth-child(1) {
+            background: #ff5f57
+        }
+
+        .term-bar i:nth-child(2) {
+            background: #febc2e
+        }
+
+        .term-bar i:nth-child(3) {
+            background: #28c840
+        }
+
+        .term-body {
+            padding: 16px 18px;
+            min-height: 230px;
+            font-size: .84rem;
+            color: #d7e0f2;
+            white-space: pre-wrap
+        }
+
+        .term-body .p {
+            color: #2fd27a
+        }
+
+        .term-body .o {
+            color: #8b9ab8
+        }
+
+        .cursor {
+            display: inline-block;
+            width: 8px;
+            height: 15px;
+            background: #d7e0f2;
+            vertical-align: middle;
+            animation: blink 1s steps(1) infinite
+        }
+
+        @keyframes blink {
+            50% {
+                opacity: 0
+            }
+        }
+
+        /* sections */
+        section {
+            padding: 70px 0
+        }
+
+        section.alt {
+            background: var(--bg2);
+            border-top: 1px solid var(--border);
+            border-bottom: 1px solid var(--border)
+        }
+
+        .eyebrow {
+            color: var(--accent);
+            font-weight: 700;
+            font-size: .8rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-bottom: 8px
+        }
+
+        h2 {
+            font-size: clamp(1.6rem, 3vw, 2.3rem);
+            letter-spacing: -.8px;
+            line-height: 1.2;
+            margin-bottom: 14px
+        }
+
+        .lead {
+            color: var(--muted);
+            max-width: 720px;
+            margin-bottom: 34px
+        }
+
+        .grid {
+            display: grid;
+            gap: 18px
+        }
+
+        .g2 {
+            grid-template-columns: repeat(2, 1fr)
+        }
+
+        .g3 {
+            grid-template-columns: repeat(3, 1fr)
+        }
+
+        .g4 {
+            grid-template-columns: repeat(4, 1fr)
+        }
+
+        .card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 24px;
+            transition: .25s
+        }
+
+        .card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow);
+            border-color: var(--accent)
+        }
+
+        .card .ic {
+            font-size: 1.7rem;
+            margin-bottom: 10px
+        }
+
+        .card h3 {
+            font-size: 1.08rem;
+            margin-bottom: 6px
+        }
+
+        .card p,
+        .card li {
+            color: var(--muted);
+            font-size: .94rem
+        }
+
+        .card ul {
+            padding-left: 18px
+        }
+
+        .stat {
+            text-align: center
+        }
+
+        .stat b {
+            display: block;
+            font-size: 2.3rem;
+            font-weight: 800;
+            letter-spacing: -1px
+        }
+
+        .stat span {
+            color: var(--muted);
+            font-size: .9rem
+        }
+
+        /* reveal */
+        .reveal {
+            opacity: 0;
+            transform: translateY(26px);
+            transition: opacity .7s, transform .7s
+        }
+
+        .reveal.in {
+            opacity: 1;
+            transform: none
+        }
+
+        /* graph simulator */
+        .sim {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            overflow: hidden
+        }
+
+        .sim-controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            padding: 16px;
+            border-bottom: 1px solid var(--border)
+        }
+
+        .sim-controls button {
+            font: inherit;
+            font-size: .86rem;
+            font-weight: 600;
+            padding: 8px 14px;
+            border-radius: 9px;
+            border: 1px solid var(--border);
+            background: var(--bg2);
+            color: var(--text);
+            cursor: pointer;
+            transition: .2s
+        }
+
+        .sim-controls button:hover:not(:disabled) {
+            border-color: var(--accent);
+            color: var(--accent)
+        }
+
+        .sim-controls button:disabled {
+            opacity: .35;
+            cursor: not-allowed
+        }
+
+        .sim-canvas {
+            overflow-x: auto;
+            padding: 10px 16px;
+            background: var(--bg2)
+        }
+
+        .sim-log {
+            background: var(--code);
+            color: #cfe0ff;
+            padding: 14px 18px;
+            font-size: .82rem;
+            min-height: 84px;
+            max-height: 140px;
+            overflow: auto
+        }
+
+        .sim-log div {
+            margin-bottom: 3px
+        }
+
+        .sim-log .p {
+            color: #2fd27a
+        }
+
+        /* tabs */
+        .tabs {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 16px
+        }
+
+        .tab {
+            font: inherit;
+            font-weight: 600;
+            font-size: .88rem;
+            padding: 9px 16px;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+            background: var(--card);
+            color: var(--muted);
+            cursor: pointer;
+            transition: .2s
+        }
+
+        .tab.active {
+            background: linear-gradient(90deg, var(--accent), var(--accent2));
+            color: #fff;
+            border-color: transparent
+        }
+
+        .panel {
+            display: none
+        }
+
+        .panel.active {
+            display: block;
+            animation: fade .35s
+        }
+
+        @keyframes fade {
+            from {
+                opacity: 0;
+                transform: translateY(8px)
+            }
+
+            to {
+                opacity: 1;
+                transform: none
+            }
+        }
+
+        .cmd {
+            position: relative;
+            background: var(--code);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 16px 60px 16px 18px;
+            margin-bottom: 12px;
+            color: #d7e0f2;
+            font-size: .85rem;
+            overflow-x: auto;
+            white-space: pre
+        }
+
+        .cmd small {
+            display: block;
+            color: #7f8fb0;
+            margin-bottom: 4px
+        }
+
+        .copy {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            font: inherit;
+            font-size: .72rem;
+            padding: 5px 10px;
+            border-radius: 7px;
+            border: 1px solid #2b3855;
+            background: #16203a;
+            color: #aebbd8;
+            cursor: pointer
+        }
+
+        .copy:hover {
+            color: #fff;
+            border-color: var(--accent)
+        }
+
+        /* timeline */
+        .timeline {
+            position: relative;
+            padding-left: 34px
+        }
+
+        .timeline::before {
+            content: "";
+            position: absolute;
+            left: 11px;
+            top: 6px;
+            bottom: 6px;
+            width: 2px;
+            background: linear-gradient(var(--accent), var(--accent2))
+        }
+
+        .step {
+            position: relative;
+            margin-bottom: 22px
+        }
+
+        .step::before {
+            content: attr(data-n);
+            position: absolute;
+            left: -34px;
+            top: 2px;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: var(--bg);
+            border: 2px solid var(--accent);
+            color: var(--accent);
+            font-size: .75rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center
+        }
+
+        .step h3 {
+            font-size: 1.02rem;
+            margin-bottom: 2px
+        }
+
+        .step p {
+            color: var(--muted);
+            font-size: .93rem
+        }
+
+        .step code {
+            background: var(--card);
+            border: 1px solid var(--border);
+            padding: 1px 7px;
+            border-radius: 6px;
+            font-size: .82rem;
+            color: var(--accent)
+        }
+
+        /* table */
+        .tbl {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            overflow: hidden;
+            background: var(--card)
+        }
+
+        .tbl th,
+        .tbl td {
+            padding: 13px 16px;
+            text-align: left;
+            font-size: .92rem;
+            border-bottom: 1px solid var(--border);
+            vertical-align: top
+        }
+
+        .tbl th {
+            background: var(--bg2);
+            font-size: .82rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--muted)
+        }
+
+        .tbl tr:last-child td {
+            border-bottom: none
+        }
+
+        .bad {
+            color: var(--red)
+        }
+
+        .good {
+            color: var(--green)
+        }
+
+        .tbl-wrap {
+            overflow-x: auto
+        }
+
+        /* quiz */
+        .quiz {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 26px;
+            max-width: 720px
+        }
+
+        .q-top {
+            display: flex;
+            justify-content: space-between;
+            color: var(--muted);
+            font-size: .85rem;
+            margin-bottom: 10px
+        }
+
+        .quiz h3 {
+            margin-bottom: 16px;
+            font-size: 1.15rem
+        }
+
+        .opt {
+            display: block;
+            width: 100%;
+            text-align: left;
+            font: inherit;
+            padding: 12px 16px;
+            margin-bottom: 10px;
+            border-radius: 11px;
+            border: 1px solid var(--border);
+            background: var(--bg2);
+            color: var(--text);
+            cursor: pointer;
+            transition: .2s
+        }
+
+        .opt:hover:not(:disabled) {
+            border-color: var(--accent)
+        }
+
+        .opt.ok {
+            border-color: var(--green);
+            background: color-mix(in srgb, var(--green) 18%, transparent)
+        }
+
+        .opt.no {
+            border-color: var(--red);
+            background: color-mix(in srgb, var(--red) 18%, transparent)
+        }
+
+        .explain {
+            color: var(--muted);
+            font-size: .9rem;
+            margin: 6px 0 14px;
+            min-height: 22px
+        }
+
+        footer {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--muted);
+            font-size: .9rem;
+            border-top: 1px solid var(--border)
+        }
+
+        #top {
+            position: fixed;
+            right: 20px;
+            bottom: 20px;
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            border: none;
+            background: linear-gradient(135deg, var(--accent), var(--accent2));
+            color: #fff;
+            font-size: 1.2rem;
+            cursor: pointer;
+            opacity: 0;
+            pointer-events: none;
+            transition: .3s;
+            box-shadow: var(--shadow)
+        }
+
+        #top.show {
+            opacity: 1;
+            pointer-events: auto
+        }
+
+        @media(max-width:860px) {
+            .hero .wrap {
+                grid-template-columns: 1fr
+            }
+
+            .g2,
+            .g3,
+            .g4 {
+                grid-template-columns: 1fr 1fr
+            }
+        }
+
+        @media(max-width:560px) {
+
+            .g2,
+            .g3,
+            .g4 {
+                grid-template-columns: 1fr
+            }
+
+            .links a:nth-child(n+5) {
+                display: none
+            }
+        }
+
+        @media(prefers-reduced-motion:reduce) {
+            * {
+                animation: none !important;
+                transition: none !important
+            }
+
+            .reveal {
+                opacity: 1;
+                transform: none
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div id="progress"></div>
+
+    <nav>
+        <div class="wrap">
+            <div class="logo">Git<span>/</span>GitHub</div>
+            <div class="links" id="links">
+                <a href="#despre">Despre</a>
+                <a href="#simulator">Simulator</a>
+                <a href="#flux">Flux</a>
+                <a href="#comenzi">Comenzi</a>
+                <a href="#comparatie">Comparație</a>
+                <a href="#test">Test</a>
+                <a href="#concluzii">Concluzii</a>
+                <button id="theme" title="Schimbă tema" aria-label="Schimbă tema">☀</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- HERO -->
+    <header class="hero">
+        <div class="wrap">
+            <div>
+                <span class="badge">Studiu de caz · Lucrul la un proiect comun</span>
+                <h1>Importanța <span class="grad">Git &amp; GitHub</span> în lucrul în echipă</h1>
+                <p>De ce nu mai trimitem fișiere pe e-mail și cum reușesc zeci de oameni să construiască același proiect
+                    fără să-și strice munca unii altora.</p>
+                <a class="btn primary" href="#simulator">Încearcă simulatorul</a>
+                <a class="btn" href="#comenzi">Vezi comenzile</a>
+            </div>
+            <div class="term" aria-hidden="true">
+                <div class="term-bar"><i></i><i></i><i></i></div>
+                <div class="term-body mono" id="typed"></div>
+            </div>
+        </div>
+    </header>
+
+    <!-- STATS -->
+    <section class="alt" style="padding:40px 0">
+        <div class="wrap grid g4">
+            <div class="card stat reveal"><b class="grad">2005</b><span>anul creării Git de Linus Torvalds</span></div>
+            <div class="card stat reveal"><b class="grad">100M+</b><span>dezvoltatori pe GitHub</span></div>
+            <div class="card stat reveal"><b class="grad">2018</b><span>GitHub achiziționat de Microsoft</span></div>
+            <div class="card stat reveal"><b class="grad">∞</b><span>versiuni salvate în istoric</span></div>
+        </div>
+    </section>
+
+    <!-- DESPRE -->
+    <section id="despre">
+        <div class="wrap">
+            <div class="eyebrow reveal">Problema și soluția</div>
+            <h2 class="reveal">De ce avem nevoie de control al versiunilor?</h2>
+            <p class="lead reveal">Când mai multe persoane lucrează la aceleași fișiere apar versiuni suprapuse,
+                modificări pierdute și întrebarea „cine a schimbat asta?”. Git și GitHub rezolvă aceste probleme.</p>
+            <div class="grid g3">
+                <div class="card reveal">
+                    <div class="ic">🧩</div>
+                    <h3>Git</h3>
+                    <p>Sistem de control al versiunilor <b>distribuit</b>. Fiecare membru are pe calculator o copie
+                        completă a proiectului și a istoricului. Funcționează și fără internet.</p>
+                </div>
+                <div class="card reveal">
+                    <div class="ic">☁️</div>
+                    <h3>GitHub</h3>
+                    <p>Platformă online care găzduiește repository-uri Git și adaugă instrumente de colaborare: Pull
+                        Requests, Issues, Teams, Actions și GitHub Pages.</p>
+                </div>
+                <div class="card reveal">
+                    <div class="ic">🤝</div>
+                    <h3>Împreună</h3>
+                    <p>Git gestionează versiunile local, GitHub sincronizează echipa. Rezultat: lucru în paralel,
+                        revizuire de cod și un istoric transparent.</p>
+                </div>
+            </div>
+            <div class="grid g4" style="margin-top:18px">
+                <div class="card reveal">
+                    <h3>Repository</h3>
+                    <p>Dosarul proiectului împreună cu întreg istoricul.</p>
+                </div>
+                <div class="card reveal">
+                    <h3>Commit</h3>
+                    <p>Un „instantaneu” salvat, cu mesaj descriptiv.</p>
+                </div>
+                <div class="card reveal">
+                    <h3>Branch</h3>
+                    <p>Linie separată de dezvoltare, fără risc pentru versiunea principală.</p>
+                </div>
+                <div class="card reveal">
+                    <h3>Pull Request</h3>
+                    <p>Propunere de includere a modificărilor, cu revizuire de colegi.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SIMULATOR -->
+    <section id="simulator" class="alt">
+        <div class="wrap">
+            <div class="eyebrow reveal">Interactiv</div>
+            <h2 class="reveal">Simulator de ramuri (branch) și merge</h2>
+            <p class="lead reveal">Apasă butoanele și vezi cum se construiește istoricul unui proiect. Jos apare comanda
+                Git echivalentă.</p>
+            <div class="sim reveal">
+                <div class="sim-controls">
+                    <button id="bCommitMain">Commit pe main</button>
+                    <button id="bBranch">Creează ramura feature</button>
+                    <button id="bCommitFeat" disabled>Commit pe feature</button>
+                    <button id="bMerge" disabled>Merge feature → main</button>
+                    <button id="bReset">↺ Resetare</button>
+                </div>
+                <div class="sim-canvas"><svg id="graph" height="190" role="img" aria-label="Graf de commit-uri"></svg>
+                </div>
+                <div class="sim-log mono" id="simlog"></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FLUX -->
+    <section id="flux">
+        <div class="wrap">
+            <div class="eyebrow reveal">Cum lucrează o echipă</div>
+            <h2 class="reveal">Fluxul de lucru pas cu pas</h2>
+            <p class="lead reveal">Acesta este fluxul folosit în aproape orice echipă de dezvoltare.</p>
+            <div class="timeline">
+                <div class="step reveal" data-n="1">
+                    <h3>Crearea repository-ului</h3>
+                    <p>Proprietarul creează proiectul pe GitHub și își invită colegii ca <code>collaborators</code>.</p>
+                </div>
+                <div class="step reveal" data-n="2">
+                    <h3>Clonarea</h3>
+                    <p>Fiecare coleg rulează <code>git clone</code> și primește proiectul cu tot istoricul.</p>
+                </div>
+                <div class="step reveal" data-n="3">
+                    <h3>Ramură nouă pentru fiecare sarcină</h3>
+                    <p><code>git checkout -b functie-noua</code> – munca se izolează de versiunea stabilă.</p>
+                </div>
+                <div class="step reveal" data-n="4">
+                    <h3>Salvarea modificărilor</h3>
+                    <p><code>git add</code> și <code>git commit -m "mesaj"</code> – pași mici, cu mesaje clare.</p>
+                </div>
+                <div class="step reveal" data-n="5">
+                    <h3>Trimiterea pe GitHub</h3>
+                    <p><code>git push</code> și deschiderea unui <b>Pull Request</b>.</p>
+                </div>
+                <div class="step reveal" data-n="6">
+                    <h3>Revizuirea codului</h3>
+                    <p>Colegii comentează, cer corecturi și aprobă modificările.</p>
+                </div>
+                <div class="step reveal" data-n="7">
+                    <h3>Merge în main</h3>
+                    <p>După aprobare, ramura este unită cu versiunea principală.</p>
+                </div>
+                <div class="step reveal" data-n="8">
+                    <h3>Sincronizarea echipei</h3>
+                    <p>Toți rulează <code>git pull</code> și lucrează mai departe pe versiunea actualizată.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- COMENZI -->
+    <section id="comenzi" class="alt">
+        <div class="wrap">
+            <div class="eyebrow reveal">Git Bash</div>
+            <h2 class="reveal">Comenzile necesare, gata de copiat</h2>
+            <p class="lead reveal">Înlocuiește <b>NUME-UTILIZATOR</b> cu username-ul tău de GitHub.</p>
+            <div class="tabs reveal" id="tabs">
+                <button class="tab active" data-t="t1">1. Configurare</button>
+                <button class="tab" data-t="t2">2. Repository + commit</button>
+                <button class="tab" data-t="t3">3. Încărcare pe GitHub</button>
+                <button class="tab" data-t="t4">4. Colaborare</button>
+            </div>
+
+            <div class="panel active" id="t1">
+                <div class="cmd mono"><small># o singură dată pe calculator</small>git config --global user.name "Numele
+                    Prenumele"
+                    git config --global user.email "email@exemplu.com"
+                    git config --list<button class="copy">Copiază</button></div>
+            </div>
+            <div class="panel" id="t2">
+                <div class="cmd mono"><small># creare dosar și repository local</small>mkdir studiu-de-caz
+                    cd studiu-de-caz
+                    git init<button class="copy">Copiază</button></div>
+                <div class="cmd mono"><small># salvarea primului commit</small>git status
+                    git add index.html
+                    git commit -m "Adaug pagina index.html"<button class="copy">Copiază</button></div>
+            </div>
+            <div class="panel" id="t3">
+                <div class="cmd mono"><small># după ce ai creat repository-ul gol pe github.com</small>git branch -M
+                    main
+                    git remote add origin https://github.com/NUME-UTILIZATOR/studiu-de-caz.git
+                    git push -u origin main<button class="copy">Copiază</button></div>
+                <div class="cmd mono"><small># hostare: Settings → Pages → Deploy from a branch → main → /
+                        (root)</small>https://NUME-UTILIZATOR.github.io/studiu-de-caz/<button
+                        class="copy">Copiază</button></div>
+            </div>
+            <div class="panel" id="t4">
+                <div class="cmd mono"><small># coleg nou: clonează proiectul</small>git clone
+                    https://github.com/NUME-UTILIZATOR/studiu-de-caz.git
+                    cd studiu-de-caz<button class="copy">Copiază</button></div>
+                <div class="cmd mono"><small># flux zilnic</small>git pull
+                    git checkout -b ramura-mea
+                    git add .
+                    git commit -m "Descriere clară a modificării"
+                    git push -u origin ramura-mea<button class="copy">Copiază</button></div>
+                <div class="cmd mono"><small># istoric și diferențe</small>git log --oneline --graph
+                    git diff
+                    git blame index.html<button class="copy">Copiază</button></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- COMPARATIE -->
+    <section id="comparatie">
+        <div class="wrap">
+            <div class="eyebrow reveal">Cu și fără</div>
+            <h2 class="reveal">Același proiect: fără Git vs. cu Git</h2>
+            <div class="tbl-wrap reveal">
+                <table class="tbl">
+                    <tr>
+                        <th>Situație</th>
+                        <th>Fără Git / GitHub</th>
+                        <th>Cu Git / GitHub</th>
+                    </tr>
+                    <tr>
+                        <td>Doi colegi modifică același fișier</td>
+                        <td class="bad">Un fișier îl suprascrie pe celălalt</td>
+                        <td class="good">Modificările se unesc sau se semnalează conflictul</td>
+                    </tr>
+                    <tr>
+                        <td>O modificare a stricat proiectul</td>
+                        <td class="bad">Căutare manuală a unei copii vechi</td>
+                        <td class="good"><code>git revert</code> – revenire instantanee</td>
+                    </tr>
+                    <tr>
+                        <td>Un membru nou intră în echipă</td>
+                        <td class="bad">Primește o arhivă pe e-mail</td>
+                        <td class="good"><code>git clone</code> – are tot, cu istoric</td>
+                    </tr>
+                    <tr>
+                        <td>Cine a scris o linie anume?</td>
+                        <td class="bad">Necunoscut</td>
+                        <td class="good"><code>git blame</code></td>
+                    </tr>
+                    <tr>
+                        <td>Copie de siguranță</td>
+                        <td class="bad">Depinde de un singur calculator</td>
+                        <td class="good">Proiectul există pe GitHub și la fiecare membru</td>
+                    </tr>
+                    <tr>
+                        <td>Publicarea site-ului</td>
+                        <td class="bad">Server propriu, încărcare manuală</td>
+                        <td class="good">GitHub Pages, gratuit</td>
+                    </tr>
+                </table>
+            </div>
+            <div class="grid g2" style="margin-top:22px">
+                <div class="card reveal">
+                    <h3 class="good">✔ Avantaje</h3>
+                    <ul>
+                        <li>Istoric complet al modificărilor</li>
+                        <li>Lucru în paralel pe ramuri</li>
+                        <li>Revizuirea codului prin Pull Request</li>
+                        <li>Organizare prin Issues și Projects</li>
+                        <li>Portofoliu public pentru dezvoltatori</li>
+                    </ul>
+                </div>
+                <div class="card reveal">
+                    <h3 class="bad">✘ Limitări</h3>
+                    <ul>
+                        <li>Curbă de învățare la început</li>
+                        <li>Conflicte de merge când se modifică aceleași rânduri</li>
+                        <li>Fișierele binare mari se gestionează greu</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- QUIZ -->
+    <section id="test" class="alt">
+        <div class="wrap">
+            <div class="eyebrow reveal">Verifică-te</div>
+            <h2 class="reveal">Test rapid</h2>
+            <div class="quiz reveal" id="quiz"></div>
+        </div>
+    </section>
+
+    <!-- CONCLUZII -->
+    <section id="concluzii">
+        <div class="wrap">
+            <div class="eyebrow reveal">Concluzii</div>
+            <h2 class="reveal">Ce am învățat</h2>
+            <div class="grid g3">
+                <div class="card reveal">
+                    <div class="ic">🛡️</div>
+                    <h3>Siguranță</h3>
+                    <p>Nicio modificare nu se pierde, iar orice eroare poate fi anulată.</p>
+                </div>
+                <div class="card reveal">
+                    <div class="ic">⚡</div>
+                    <h3>Eficiență</h3>
+                    <p>Echipa lucrează simultan, fără blocaje și fără suprascrieri.</p>
+                </div>
+                <div class="card reveal">
+                    <div class="ic">🔍</div>
+                    <h3>Transparență</h3>
+                    <p>Se știe mereu cine, când și de ce a modificat ceva.</p>
+                </div>
+            </div>
+            <p class="lead reveal" style="margin-top:28px">Git și GitHub au devenit standardul în industria IT. Chiar și
+                pentru proiecte școlare sau personale oferă ordine, colaborare transparentă și posibilitatea de a reveni
+                la orice versiune. Cunoașterea lor este o competență practică esențială pentru orice viitor specialist.
+            </p>
+            <p class="reveal" style="color:var(--muted);font-size:.9rem">Surse: <a
+                    href="https://git-scm.com/doc">git-scm.com/doc</a> · <a
+                    href="https://docs.github.com">docs.github.com</a> · <a
+                    href="https://pages.github.com">pages.github.com</a></p>
+        </div>
+    </section>
+
+    <footer>
+        Studiu de caz realizat de <b>Zahu Ruslan</b> · Grupa AAW2341 · 2026
+    </footer>
+    <button id="top" aria-label="Sus">↑</button>
+
+    <script>
+        /* ---------- theme ---------- */
+        (function () {
+            var r = document.documentElement, b = document.getElementById('theme');
+            try { var s = localStorage.getItem('theme'); if (s) r.setAttribute('data-theme', s) } catch (e) { }
+            function icon() { b.textContent = r.getAttribute('data-theme') === 'dark' ? '☀' : '☾' }
+            icon();
+            b.onclick = function () {
+                var t = r.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+                r.setAttribute('data-theme', t); try { localStorage.setItem('theme', t) } catch (e) { } icon();
+            };
+        })();
+
+        /* ---------- progress, back to top, scroll-spy ---------- */
+        (function () {
+            var p = document.getElementById('progress'), t = document.getElementById('top');
+            var links = [].slice.call(document.querySelectorAll('.links a'));
+            var secs = links.map(function (a) { return document.querySelector(a.getAttribute('href')) });
+            function on() {
+                var h = document.documentElement, max = h.scrollHeight - h.clientHeight;
+                p.style.width = (max > 0 ? h.scrollTop / max * 100 : 0) + '%';
+                t.classList.toggle('show', h.scrollTop > 500);
+                var cur = -1; secs.forEach(function (s, i) { if (s && s.getBoundingClientRect().top < 120) cur = i });
+                links.forEach(function (a, i) { a.classList.toggle('active', i === cur) });
+            }
+            window.addEventListener('scroll', on, { passive: true }); on();
+            t.onclick = function () { window.scrollTo({ top: 0, behavior: 'smooth' }) };
+        })();
+
+        /* ---------- reveal ---------- */
+        (function () {
+            var els = document.querySelectorAll('.reveal');
+            if (!('IntersectionObserver' in window)) { els.forEach(function (e) { e.classList.add('in') }); return }
+            var io = new IntersectionObserver(function (en) { en.forEach(function (x) { if (x.isIntersecting) { x.target.classList.add('in'); io.unobserve(x.target) } }) }, { threshold: .12 });
+            els.forEach(function (e) { io.observe(e) });
+        })();
+
+        /* ---------- typed terminal ---------- */
+        (function () {
+            var el = document.getElementById('typed');
+            var lines = [
+                ['p', '$ git clone https://github.com/echipa/studiu-de-caz.git'],
+                ['o', 'Cloning into \'studiu-de-caz\'... done.'],
+                ['p', '$ git checkout -b pagina-noua'],
+                ['o', 'Switched to a new branch \'pagina-noua\''],
+                ['p', '$ git add index.html'],
+                ['p', '$ git commit -m "Adaug studiul de caz"'],
+                ['o', '[pagina-noua 3f9a2c1] Adaug studiul de caz'],
+                ['p', '$ git push -u origin pagina-noua'],
+                ['o', 'Branch \'pagina-noua\' set up to track remote.']
+            ];
+            var li = 0, ci = 0, html = '';
+            function esc(s) { return s.replace(/&/g, '&amp;').replace(/</g, '&lt;') }
+            function tick() {
+                if (li >= lines.length) { setTimeout(function () { li = 0; ci = 0; html = ''; tick() }, 3000); return }
+                var l = lines[li], txt = l[1];
+                if (l[0] === 'o') { html += '<span class="o">' + esc(txt) + '</span>\n'; li++; ci = 0; el.innerHTML = html + '<span class="cursor"></span>'; setTimeout(tick, 350); return }
+                ci++;
+                el.innerHTML = html + '<span class="p">' + esc(txt.slice(0, ci)) + '</span><span class="cursor"></span>';
+                if (ci >= txt.length) { html += '<span class="p">' + esc(txt) + '</span>\n'; li++; ci = 0; setTimeout(tick, 300) } else setTimeout(tick, 28);
+            }
+            tick();
+        })();
+
+        /* ---------- branch simulator ---------- */
+        (function () {
+            var svg = document.getElementById('graph'), log = document.getElementById('simlog');
+            var bC = document.getElementById('bCommitMain'), bB = document.getElementById('bBranch'),
+                bF = document.getElementById('bCommitFeat'), bM = document.getElementById('bMerge'), bR = document.getElementById('bReset');
+            var lane = { main: { y: 55, c: '#2fd27a' }, feature: { y: 135, c: '#a46bff' } };
+            var commits, tips, feat, count;
+            function hash() { return Math.random().toString(16).slice(2, 9) }
+            function say(cmd, out) {
+                var d = document.createElement('div'); d.innerHTML = '<span class="p">$ ' + cmd + '</span>' + (out ? '<br>' + out : '');
+                log.appendChild(d); log.scrollTop = log.scrollHeight;
+            }
+            function add(branch, extra) {
+                var c = { id: commits.length, b: branch, x: 46 + commits.length * 62, h: hash(), parents: [] };
+                if (tips[branch] !== null) c.parents.push(tips[branch]);
+                if (extra !== undefined && extra !== null) c.parents.push(extra);
+                commits.push(c); tips[branch] = c.id; return c;
+            }
+            function draw() {
+                var w = Math.max(560, 60 + commits.length * 62 + 60), s = '';
+                svg.setAttribute('width', w); svg.setAttribute('viewBox', '0 0 ' + w + ' 190');
+                s += '<text x="8" y="22" fill="#2fd27a" font-size="12" font-weight="700">main</text>';
+                if (feat) s += '<text x="8" y="112" fill="#a46bff" font-size="12" font-weight="700">feature</text>';
+                commits.forEach(function (c) {
+                    var y = lane[c.b].y;
+                    c.parents.forEach(function (pid) {
+                        var p = commits[pid], py = lane[p.b].y, col = lane[c.b === p.b ? c.b : 'feature'].c;
+                        if (py === y) s += '<line x1="' + p.x + '" y1="' + py + '" x2="' + c.x + '" y2="' + y + '" stroke="' + col + '" stroke-width="3"/>';
+                        else { var m = (p.x + c.x) / 2; s += '<path d="M' + p.x + ' ' + py + ' C' + m + ' ' + py + ' ' + m + ' ' + y + ' ' + c.x + ' ' + y + '" fill="none" stroke="#a46bff" stroke-width="3"/>' }
+                    });
+                });
+                commits.forEach(function (c) {
+                    var y = lane[c.b].y;
+                    s += '<circle cx="' + c.x + '" cy="' + y + '" r="11" fill="' + lane[c.b].c + '" stroke="var(--bg2)" stroke-width="3"><animate attributeName="r" from="2" to="11" dur=".3s"/></circle>';
+                    s += '<text x="' + c.x + '" y="' + (y + (c.b === 'main' ? -20 : 30)) + '" fill="var(--muted)" font-size="10" text-anchor="middle" font-family="JetBrains Mono,monospace">' + c.h.slice(0, 5) + '</text>';
+                });
+                var tm = commits[tips.main];
+                s += '<rect x="' + (tm.x - 26) + '" y="86" width="0" height="0"/>';
+                s += '<text x="' + (tm.x + 16) + '" y="' + (lane.main.y + 4) + '" fill="#2fd27a" font-size="11" font-weight="700">HEAD → main</text>';
+                if (feat) { var tf = commits[tips.feature]; s += '<text x="' + (tf.x + 16) + '" y="' + (lane.feature.y + 4) + '" fill="#a46bff" font-size="11" font-weight="700">feature</text>' }
+                svg.innerHTML = s;
+                var full = commits.length >= 11;
+                bC.disabled = full; bB.disabled = feat || full;
+                bF.disabled = !feat || full;
+                bM.disabled = !feat || tips.feature === tips.main || full;
+            }
+            function reset() {
+                commits = []; tips = { main: null, feature: null }; feat = false; log.innerHTML = '';
+                add('main'); say('git init && git commit -m "Initial commit"', '[' + 'main ' + commits[0].h.slice(0, 7) + '] Initial commit');
+                draw();
+            }
+            bC.onclick = function () { var c = add('main'); say('git commit -m "Modificare pe main"', '[main ' + c.h.slice(0, 7) + '] Modificare pe main'); draw() };
+            bB.onclick = function () { feat = true; tips.feature = tips.main; say('git checkout -b feature', 'Switched to a new branch \'feature\''); draw() };
+            bF.onclick = function () { var c = add('feature'); say('git commit -m "Lucru pe feature"', '[feature ' + c.h.slice(0, 7) + '] Lucru pe feature'); draw() };
+            bM.onclick = function () {
+                var f = tips.feature, c = add('main', f);
+                say('git checkout main && git merge feature', 'Merge made by the \'ort\' strategy (' + c.h.slice(0, 7) + ')');
+                feat = false; tips.feature = null; draw();
+            };
+            bR.onclick = reset;
+            reset();
+        })();
+
+        /* ---------- tabs + copy ---------- */
+        (function () {
+            var tabs = [].slice.call(document.querySelectorAll('.tab'));
+            tabs.forEach(function (t) {
+                t.onclick = function () {
+                    tabs.forEach(function (x) { x.classList.remove('active') }); t.classList.add('active');
+                    document.querySelectorAll('.panel').forEach(function (p) { p.classList.remove('active') });
+                    document.getElementById(t.dataset.t).classList.add('active');
+                }
+            });
+            document.querySelectorAll('.copy').forEach(function (b) {
+                b.onclick = function () {
+                    var box = b.parentNode, txt = [].slice.call(box.childNodes).filter(function (n) { return n.nodeType === 3 }).map(function (n) { return n.nodeValue }).join('');
+                    function ok() { b.textContent = 'Copiat ✓'; setTimeout(function () { b.textContent = 'Copiază' }, 1500) }
+                    if (navigator.clipboard && navigator.clipboard.writeText) { navigator.clipboard.writeText(txt).then(ok, function () { }) }
+                    else { var ta = document.createElement('textarea'); ta.value = txt; document.body.appendChild(ta); ta.select(); try { document.execCommand('copy'); ok() } catch (e) { } ta.remove() }
+                }
+            });
+        })();
+
+        /* ---------- quiz ---------- */
+        (function () {
+            var Q = [
+                { q: 'Ce este Git?', o: ['O platformă web de găzduire', 'Un sistem de control al versiunilor', 'Un editor de text', 'Un limbaj de programare'], a: 1, e: 'Git este un sistem de control al versiunilor distribuit, creat în 2005.' },
+                { q: 'Ce comandă copiază un repository de pe GitHub pe calculatorul tău?', o: ['git init', 'git commit', 'git clone', 'git merge'], a: 2, e: 'git clone descarcă proiectul împreună cu întreg istoricul.' },
+                { q: 'La ce folosește un Pull Request?', o: ['Șterge o ramură', 'Propune includerea modificărilor și permite revizuirea lor', 'Instalează Git', 'Creează un cont nou'], a: 1, e: 'Pull Request-ul permite colegilor să comenteze și să aprobe modificările.' },
+                { q: 'Ce serviciu GitHub găzduiește gratuit pagini web statice?', o: ['GitHub Actions', 'GitHub Issues', 'GitHub Pages', 'GitHub Gist'], a: 2, e: 'GitHub Pages publică pagina ta la adresa utilizator.github.io/repo.' },
+                { q: 'Cum adaugi un coleg în proiect pe GitHub?', o: ['Settings → Collaborators → Add people', 'git add coleg', 'Se trimite fișierul pe e-mail', 'Nu este posibil'], a: 0, e: 'Din Settings → Collaborators → Add people; colegul acceptă invitația.' }
+            ];
+            var box = document.getElementById('quiz'), i = 0, score = 0;
+            function show() {
+                if (i >= Q.length) {
+                    var m = score === Q.length ? 'Excelent! 🎉' : score >= 3 ? 'Foarte bine!' : 'Mai recitește secțiunile de mai sus.';
+                    box.innerHTML = '<h3>Rezultat: ' + score + ' / ' + Q.length + '</h3><p class="explain">' + m + '</p><button class="btn primary" id="again">Reia testul</button>';
+                    document.getElementById('again').onclick = function () { i = 0; score = 0; show() }; return;
+                }
+                var q = Q[i];
+                box.innerHTML = '<div class="q-top"><span>Întrebarea ' + (i + 1) + ' din ' + Q.length + '</span><span>Scor: ' + score + '</span></div><h3>' + q.q + '</h3>' +
+                    q.o.map(function (t, k) { return '<button class="opt" data-k="' + k + '">' + t + '</button>' }).join('') + '<div class="explain" id="ex"></div><button class="btn" id="next" style="display:none">Următoarea →</button>';
+                [].slice.call(box.querySelectorAll('.opt')).forEach(function (b) {
+                    b.onclick = function () {
+                        var k = +b.dataset.k;
+                        [].slice.call(box.querySelectorAll('.opt')).forEach(function (x) { x.disabled = true; if (+x.dataset.k === q.a) x.classList.add('ok') });
+                        if (k === q.a) score++; else b.classList.add('no');
+                        document.getElementById('ex').textContent = q.e;
+                        var n = document.getElementById('next'); n.style.display = 'inline-block'; n.onclick = function () { i++; show() };
+                    }
+                });
+            }
+            show();
+        })();
+    </script>
+</body>
+
+</html>
